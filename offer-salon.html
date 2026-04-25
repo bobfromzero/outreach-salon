@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Booking Bot for Salons — Alekss Prenclavs</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070502;
+    --gold: #c9a96e;
+    --gold-light: #e8c98a;
+    --gold-dim: #8b6914;
+    --white: #f0ece4;
+    --muted: #6b6560;
+    --card-bg: rgba(255,255,255,0.025);
+    --card-border: rgba(201,169,110,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeIn 0.8s ease forwards; }
+  .fade-in-delay-1 { animation: fadeIn 0.8s ease 0.15s forwards; opacity: 0; }
+  .fade-in-delay-2 { animation: fadeIn 0.8s ease 0.3s forwards; opacity: 0; }
+  .fade-in-delay-3 { animation: fadeIn 0.8s ease 0.45s forwards; opacity: 0; }
+  .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 48px;
+    background: rgba(7,5,2,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border);
+  }
+  .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--gold); }
+  .lang-toggle {
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--muted);
+    padding: 8px 20px; border-radius: 100px; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500;
+    letter-spacing: 0.08em; transition: all 0.3s ease;
+  }
+  .lang-toggle:hover { border-color: var(--gold); color: var(--gold); }
+
+  section { padding: 100px 48px; max-width: 1100px; margin: 0 auto; }
+
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: flex-start;
+    padding-top: 120px; position: relative;
+    max-width: 1100px; margin: 0 auto;
+    padding-left: 48px; padding-right: 48px;
+  }
+  .hero::before {
+    content: '';
+    position: fixed; top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(201,169,110,0.06) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--card-bg); border: 1px solid rgba(201,169,110,0.25);
+    color: var(--gold); font-size: 0.78rem; font-weight: 500;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 8px 20px; border-radius: 100px; margin-bottom: 28px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 5vw, 4rem); font-weight: 700;
+    line-height: 1.15; color: var(--white); margin-bottom: 24px; max-width: 780px;
+  }
+  h1 em, h2 em {
+    font-style: italic;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 1.1rem; color: var(--muted); max-width: 580px;
+    margin-bottom: 48px; font-weight: 300; line-height: 1.8;
+  }
+  .hero-cta { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+
+  .btn-primary {
+    display: inline-block; background: linear-gradient(135deg, #c9a96e, #8b6914);
+    color: var(--bg); padding: 16px 36px; border-radius: 100px;
+    font-weight: 600; font-size: 0.95rem; text-decoration: none;
+    transition: all 0.3s ease; letter-spacing: 0.02em;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,169,110,0.3); }
+
+  .btn-secondary {
+    display: inline-block; border: 1px solid rgba(201,169,110,0.4); color: var(--gold);
+    padding: 15px 32px; border-radius: 100px; font-size: 0.95rem;
+    text-decoration: none; transition: all 0.3s ease;
+  }
+  .btn-secondary:hover { border-color: var(--gold); background: rgba(201,169,110,0.06); }
+
+  .reply-note { margin-top: 16px; font-size: 0.82rem; color: var(--muted); }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 700;
+    color: var(--white); margin-bottom: 16px;
+  }
+  .section-sub { color: var(--muted); font-size: 1rem; margin-bottom: 52px; max-width: 520px; font-weight: 300; line-height: 1.8; }
+  .divider { width: 60px; height: 1px; background: linear-gradient(90deg, var(--gold), transparent); margin: 16px 0 40px; }
+
+  /* Offers grid */
+  .offers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .offer-card {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 20px; padding: 44px 40px; transition: all 0.3s ease;
+    display: flex; flex-direction: column;
+  }
+  .offer-card.featured { border-color: rgba(201,169,110,0.3); background: rgba(201,169,110,0.04); }
+  .offer-card:hover { transform: translateY(-4px); }
+
+  .offer-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 500; margin-bottom: 12px; }
+  .offer-price { font-family: 'Playfair Display', serif; font-size: 2.8rem; font-weight: 700; color: var(--white); line-height: 1; margin-bottom: 6px; }
+  .offer-price-note { font-size: 0.82rem; color: var(--muted); margin-bottom: 28px; }
+
+  .offer-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin: 0; flex-grow: 1; }
+  .offer-features li { display: flex; gap: 10px; align-items: flex-start; font-size: 0.9rem; color: var(--muted); }
+  .offer-features li::before { content: '✦'; color: var(--gold-dim); font-size: 0.65rem; margin-top: 5px; flex-shrink: 0; }
+  .offer-features li span { color: var(--white); }
+
+  .turnaround-badge {
+    display: inline-block; background: rgba(201,169,110,0.08);
+    border: 1px solid rgba(201,169,110,0.2); color: var(--gold);
+    padding: 6px 16px; border-radius: 100px; font-size: 0.8rem;
+    font-weight: 500; margin-bottom: 24px;
+  }
+
+  /* Bot preview */
+  .bot-preview {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 20px; padding: 40px; display: flex;
+    flex-direction: column; align-items: center; gap: 28px;
+  }
+  .chat-mini {
+    width: 100%; max-width: 400px;
+    background: #1a1a1a; border-radius: 16px; padding: 20px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .chat-msg { display: flex; flex-direction: column; max-width: 78%; }
+  .chat-msg.user { align-self: flex-end; align-items: flex-end; }
+  .chat-msg.bot { align-self: flex-start; align-items: flex-start; }
+  .chat-bubble {
+    padding: 10px 14px; border-radius: 18px; font-size: 0.85rem; line-height: 1.5;
+  }
+  .user .chat-bubble { background: #0095f6; color: #fff; border-bottom-right-radius: 4px; }
+  .bot .chat-bubble { background: #262626; color: var(--white); border-bottom-left-radius: 4px; }
+  .chat-name { font-size: 0.7rem; color: var(--muted); margin-bottom: 3px; }
+  .bot-indicator {
+    font-size: 0.65rem; color: var(--gold-dim); letter-spacing: 0.05em;
+    text-transform: uppercase; margin-top: 3px;
+  }
+  .bot-preview-cta { text-align: center; }
+
+  /* Why me */
+  .why-me-list { list-style: none; display: flex; flex-direction: column; gap: 16px; margin: 32px 0; }
+  .why-me-list li {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 20px 24px; background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 12px; font-size: 0.95rem; color: var(--muted); transition: all 0.3s ease;
+  }
+  .why-me-list li:hover { border-color: rgba(201,169,110,0.15); color: var(--white); }
+  .why-me-list .icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .portfolio-note {
+    margin-top: 28px; padding: 24px 28px;
+    background: rgba(201,169,110,0.04); border: 1px solid rgba(201,169,110,0.15);
+    border-radius: 12px; font-size: 0.95rem; color: var(--gold-light);
+    font-style: italic; font-family: 'Playfair Display', serif;
+  }
+
+  /* Pills */
+  .cred-label { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold-dim); font-weight: 500; margin-bottom: 14px; margin-top: 36px; }
+  .cred-label:first-child { margin-top: 0; }
+  .pills-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0; }
+  .pill { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--white); padding: 8px 20px; border-radius: 100px; font-size: 0.88rem; font-weight: 500; transition: all 0.3s ease; }
+  .pill:hover { border-color: rgba(201,169,110,0.3); color: var(--gold); }
+  .pill-gold { background: rgba(201,169,110,0.08); border: 1px solid rgba(201,169,110,0.2); color: var(--gold); }
+
+  /* CTA */
+  .cta-section { text-align: center; padding: 80px 48px 100px; }
+  .cta-section h2 { margin-bottom: 16px; }
+  .cta-section .section-sub { margin: 0 auto 40px; text-align: center; }
+  .cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+
+  footer { text-align: center; padding: 40px 48px; border-top: 1px solid var(--card-border); color: var(--muted); font-size: 0.82rem; }
+  footer a { color: var(--gold); text-decoration: none; }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    section { padding: 80px 24px; }
+    .hero { padding: 120px 24px 60px; }
+    .offers-grid { grid-template-columns: 1fr; }
+    .cta-section { padding: 60px 24px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Alekss Prenclavs</div>
+  <button class="lang-toggle" onclick="toggleLang()" id="langBtn">LV</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge fade-in" data-en="AI Automation for Beauty Businesses" data-lv="AI Automatizācija Skaistumkopšanas Biznesiem">AI Automation for Beauty Businesses</div>
+  <h1 class="fade-in-delay-1">
+    <span data-en='Your Phone Is Your Booking System. <em>Let&apos;s Fix That.</em>' data-lv='Tavs Telefons ir Tava Rezervēšanas Sistēma. <em>Labosim To.</em>'>Your Phone Is Your Booking System. <em>Let's Fix That.</em></span>
+  </h1>
+  <p class="hero-sub fade-in-delay-2" data-en="I set up an AI agent on your Instagram & Facebook that answers DMs 24/7, qualifies clients, and books appointments automatically. No phone tag. No missed clients. No stress at 11pm." data-lv="Es uzstādīšu AI aģentu tavā Instagram un Facebook, kas atbild uz DM ziņām 24/7, kvalificē klientus un automātiski rezervē tikšanās. Nekādu telefona spēļu. Nekādu pazaudētu klientu. Nekādā stresa plkst. 23.">
+    I set up an AI agent on your Instagram & Facebook that answers DMs 24/7, qualifies clients, and books appointments automatically. No phone tag. No missed clients. No stress at 11pm.
+  </p>
+  <div class="hero-cta fade-in-delay-3">
+    <a href="mailto:prenclavsalekss@gmail.com?subject=Booking Bot Setup" class="btn-primary" data-en="Set Up My Booking Bot" data-lv="Uzstādīt Manu Rezervēšanas Botu">Set Up My Booking Bot</a>
+    <a href="mailto:prenclavsalekss@gmail.com?subject=Full Package Inquiry" class="btn-secondary" data-en="I want the full package →" data-lv="Gribu pilno paketi →">I want the full package →</a>
+  </div>
+  <p class="reply-note fade-in-delay-3" data-en="Available for a quick call after the weekend." data-lv="Pieejams ātrā zvanam pēc nedēļas nogales.">Available for a quick call after the weekend.</p>
+</div>
+
+<!-- OFFERS -->
+<section class="reveal">
+  <div class="badge" data-en="Two Options" data-lv="Divas Iespējas">Two Options</div>
+  <div class="divider"></div>
+  <h2 data-en="Pick what you <em>actually need</em>" data-lv="Izvēlies to, kas tev <em>tiešām vajadzīgs</em>">Pick what you <em>actually need</em></h2>
+  <p class="section-sub" data-en="Already have a website? Just the bot. Need everything? We do it all." data-lv="Jau ir mājas lapa? Tikai bots. Vajag visu? Izdarīsim visu.">Already have a website? Just the bot. Need everything? We do it all.</p>
+
+  <div class="offers-grid">
+    <!-- Offer 1 -->
+    <div class="offer-card">
+      <div class="offer-label" data-en="AI Agent Setup" data-lv="AI Aģenta Uzstādīšana">AI Agent Setup</div>
+      <div class="offer-price">€200–300</div>
+      <div class="offer-price-note" data-en="One-time setup · Client pays ~€15–25/month for tools (ManyChat etc.)" data-lv="Vienreizēja uzstādīšana · Klients maksā ~€15–25/mēnesī par rīkiem (ManyChat utt.)">One-time setup · Client pays ~€15–25/month for tools (ManyChat etc.)</div>
+      <span class="turnaround-badge" data-en="⚡ Ready in 48–72 hours" data-lv="⚡ Gatavs 48–72 stundu laikā">⚡ Ready in 48–72 hours</span>
+      <ul class="offer-features">
+        <li><span data-en="Instagram + Facebook DM automation" data-lv="Instagram + Facebook DM automatizācija">Instagram + Facebook DM automation</span></li>
+        <li><span data-en="Appointment booking flow" data-lv="Tikšanās rezervēšanas process">Appointment booking flow</span></li>
+        <li><span data-en="FAQ auto-responses (services, prices, hours)" data-lv="Automātiskas atbildes uz BUJ (pakalpojumi, cenas, laiki)">FAQ auto-responses (services, prices, hours)</span></li>
+        <li><span data-en="Handoff to human when needed" data-lv="Nodošana cilvēkam, kad nepieciešams">Handoff to human when needed</span></li>
+        <li><span data-en="30 days of support after launch" data-lv="30 dienu atbalsts pēc palaišanas">30 days of support after launch</span></li>
+      </ul>
+    </div>
+
+    <!-- Offer 2 -->
+    <div class="offer-card featured">
+      <div class="offer-label" data-en="Full Package — Website + AI" data-lv="Pilnā Pakete — Mājas Lapa + AI">Full Package — Website + AI</div>
+      <div class="offer-price">€750</div>
+      <div class="offer-price-note" data-en="Normally €1,000 — portfolio price · Best for salons with no website or an outdated one" data-lv="Parasti €1,000 — portfolio cena · Vislabāk saloniem bez mājas lapas vai ar novecojušu">Normally €1,000 — portfolio price · Best for salons with no website or an outdated one</div>
+      <span class="turnaround-badge" data-en="⚡ Everything above + custom website" data-lv="⚡ Viss iepriekšminētais + pielāgota mājas lapa">⚡ Everything above + custom website</span>
+      <ul class="offer-features">
+        <li><span data-en="Everything in the AI Agent Setup" data-lv="Viss no AI Aģenta Uzstādīšanas">Everything in the AI Agent Setup</span></li>
+        <li><span data-en="Custom website designed for bookings" data-lv="Pielāgota mājas lapa, kas domāta rezervēšanai">Custom website designed for bookings</span></li>
+        <li><span data-en="Services, prices, gallery, contact" data-lv="Pakalpojumi, cenas, galerija, kontakti">Services, prices, gallery, contact</span></li>
+        <li><span data-en="Mobile-first, fast, SEO-ready" data-lv="Mobile-first, ātrs, SEO-gatavs">Mobile-first, fast, SEO-ready</span></li>
+        <li><span data-en="30 days support after launch" data-lv="30 dienu atbalsts pēc palaišanas">30 days support after launch</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- BOT IN ACTION -->
+<section class="reveal">
+  <div class="badge" data-en="See It In Action" data-lv="Redzi To Darbībā">See It In Action</div>
+  <div class="divider"></div>
+  <h2 data-en="This is a <em>real conversation</em>" data-lv="Šī ir <em>īsta saruna</em>">This is a <em>real conversation</em></h2>
+  <p class="section-sub" data-en="Client messages at 11pm. Bot books the appointment in 2 minutes. You wake up with a full schedule." data-lv="Klients raksta pulksten 23. Bots rezervē tikšanos 2 minūtēs. Tu mostaties ar pilnu grafiku.">Client messages at 11pm. Bot books the appointment in 2 minutes. You wake up with a full schedule.</p>
+
+  <div class="bot-preview">
+    <div class="chat-mini">
+      <div class="chat-msg user">
+        <div class="chat-name" data-en="Customer" data-lv="Kliente">Customer</div>
+        <div class="chat-bubble">Sveiki! Vai jums ir brīvas vietas rītdien gēla manikīram?</div>
+      </div>
+      <div class="chat-msg bot">
+        <div class="chat-name">Nails Studio</div>
+        <div class="chat-bubble">Sveiki! Jā, mums ir brīvas vietas 😊 Cikos jums būtu ērtāk — ap 10:00, 13:00 vai 16:00?</div>
+        <div class="bot-indicator" data-en="✦ AI" data-lv="✦ AI">✦ AI</div>
+      </div>
+      <div class="chat-msg user">
+        <div class="chat-bubble">13:00 būtu ideāli!</div>
+      </div>
+      <div class="chat-msg bot">
+        <div class="chat-bubble">Lieliski! Un uz kādu vārdu pierakstīt?</div>
+        <div class="bot-indicator" data-en="✦ AI" data-lv="✦ AI">✦ AI</div>
+      </div>
+      <div class="chat-msg user">
+        <div class="chat-bubble">Kristīne</div>
+      </div>
+      <div class="chat-msg bot">
+        <div class="chat-bubble">Perfekti, Kristīne! Tad pierakstu jūs rītdien plkst. 13:00 uz gēla manikīru. Apmeklējums apstiprināts ✅</div>
+        <div class="bot-indicator" data-en="✦ AI" data-lv="✦ AI">✦ AI</div>
+      </div>
+    </div>
+    <div class="bot-preview-cta">
+      <a href="dm-bot-example.html" target="_blank" class="btn-secondary" data-en="See Full Demo →" data-lv="Skatīt Pilno Demo →">See Full Demo →</a>
+    </div>
+  </div>
+</section>
+
+<!-- WHY ME -->
+<section class="reveal">
+  <div class="badge" data-en="Why Me" data-lv="Kāpēc Es">Why Me</div>
+  <div class="divider"></div>
+  <h2 data-en="Not a faceless agency.<br><em>A real person.</em>" data-lv="Ne bezsejas aģentūra.<br><em>Īsts cilvēks.</em>">Not a faceless agency.<br><em>A real person.</em></h2>
+
+  <ul class="why-me-list">
+    <li>
+      <span class="icon">🧠</span>
+      <span data-en='"I&apos;ve built tech for BMW and Samsung. Now I help salons get the same automation."' data-lv='"Esmu veidojis tehnoloģijas BMW un Samsung. Tagad palīdzu saloniem iegūt to pašu automatizāciju."'>"I've built tech for BMW and Samsung. Now I help salons get the same automation."</span>
+    </li>
+    <li>
+      <span class="icon">👋</span>
+      <span data-en='"Not a faceless agency. A local guy who actually knows what he&apos;s building."' data-lv='"Ne bezsejas aģentūra. Vietējais puisis, kurš tiešām zina, ko viņš veido."'>"Not a faceless agency. A local guy who actually knows what he's building."</span>
+    </li>
+    <li>
+      <span class="icon">📱</span>
+      <span data-en='"You get direct access. Message me, I reply. Not a ticket system."' data-lv='"Tu saņem tiešu piekļuvi. Raksti man, es atbildu. Ne biļešu sistēma."'>"You get direct access. Message me, I reply. Not a ticket system."</span>
+    </li>
+    <li>
+      <span class="icon">💼</span>
+      <span data-en='"7 years in ecommerce, 14 stores currently running. I know what converts."' data-lv='"7 gadi e-komerciā, 14 veikali pašlaik darbojas. Es zinu, kas konvertē."'>"7 years in ecommerce, 14 stores currently running. I know what converts."</span>
+    </li>
+  </ul>
+
+  <div class="portfolio-note" data-en='"I&apos;m building my portfolio. Your success becomes my case study. That&apos;s why these prices make no sense for 2025."' data-lv='"Es veidoju savu portfolio. Tavs panākums kļūst par manu gadījuma izpēti. Tāpēc šīs cenas 2025. gadā neizklausās normāli."'>
+    "I'm building my portfolio. Your success becomes my case study. That's why these prices make no sense for 2025."
+  </div>
+</section>
+
+<!-- CREDIBILITY -->
+<section class="reveal">
+  <div class="badge" data-en="Track Record" data-lv="Darba Pieredze">Track Record</div>
+  <div class="divider"></div>
+  <h2 data-en="Where I've <em>been before</em>" data-lv="Kur esmu <em>bijis iepriekš</em>">Where I've <em>been before</em></h2>
+
+  <div class="cred-label" data-en="Brands I've worked with at Scandiweb" data-lv="Zīmoli, ar kuriem strādāju Scandiweb">Brands I've worked with at Scandiweb</div>
+  <div class="pills-row">
+    <span class="pill">BMW</span>
+    <span class="pill">Samsung</span>
+    <span class="pill">Puma</span>
+    <span class="pill">New York Times</span>
+    <span class="pill">The Met</span>
+    <span class="pill">Rockar</span>
+    <span class="pill">Macron</span>
+  </div>
+
+  <div class="cred-label" data-en="Ecom stores I manage right now" data-lv="E-komercijas veikali, ko pārvaldīju šobrīd">Ecom stores I manage right now</div>
+  <div class="pills-row">
+    <span class="pill pill-gold">Pet24</span>
+    <span class="pill pill-gold">Save24</span>
+    <span class="pill pill-gold">Loverte</span>
+    <span class="pill pill-gold">CandyPop</span>
+    <span class="pill pill-gold">Lemona</span>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section reveal">
+  <h2 data-en="Ready to stop <em>missing bookings?</em>" data-lv="Gatavs pārstāt <em>zaudēt rezervācijas?</em>">Ready to stop <em>missing bookings?</em></h2>
+  <p class="section-sub" data-en="Just reply. I'll show you exactly how it would work for your salon." data-lv="Vienkārši atbildi. Es parādīšu tev tieši, kā tas darbosies tavam salonam.">Just reply. I'll show you exactly how it would work for your salon.</p>
+  <div class="cta-buttons">
+    <a href="mailto:prenclavsalekss@gmail.com?subject=Booking Bot Setup" class="btn-primary" data-en="Set Up My Booking Bot" data-lv="Uzstādīt Manu Rezervēšanas Botu">Set Up My Booking Bot</a>
+    <a href="mailto:prenclavsalekss@gmail.com?subject=Full Package - Website + AI" class="btn-secondary" data-en="I want the full package →" data-lv="Gribu pilno paketi →">I want the full package →</a>
+  </div>
+  <p class="reply-note" data-en="Available for a quick call after the weekend." data-lv="Pieejams ātrā zvanam pēc nedēļas nogales.">Available for a quick call after the weekend.</p>
+</div>
+
+<footer>
+  <p>Alekss Prenclavs · <a href="mailto:prenclavsalekss@gmail.com">prenclavsalekss@gmail.com</a> · <a href="https://bobfromzero.github.io/bronai" target="_blank">bobfromzero.github.io/bronai</a></p>
+</footer>
+
+<script>
+  let lang = 'en';
+  function toggleLang() {
+    lang = lang === 'en' ? 'lv' : 'en';
+    document.getElementById('langBtn').textContent = lang === 'en' ? 'LV' : 'EN';
+    document.querySelectorAll('[data-en]').forEach(el => {
+      const val = el.getAttribute('data-' + lang);
+      if (!val) return;
+      el.innerHTML = val;
+    });
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
