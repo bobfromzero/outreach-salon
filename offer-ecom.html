@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ecommerce Store Audit — Alekss Prenclavs</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070502;
+    --gold: #c9a96e;
+    --gold-light: #e8c98a;
+    --gold-dim: #8b6914;
+    --white: #f0ece4;
+    --muted: #6b6560;
+    --card-bg: rgba(255,255,255,0.025);
+    --card-border: rgba(201,169,110,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeIn 0.8s ease forwards; }
+  .fade-in-delay-1 { animation: fadeIn 0.8s ease 0.15s forwards; opacity: 0; }
+  .fade-in-delay-2 { animation: fadeIn 0.8s ease 0.3s forwards; opacity: 0; }
+  .fade-in-delay-3 { animation: fadeIn 0.8s ease 0.45s forwards; opacity: 0; }
+
+  .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* Nav */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 48px;
+    background: rgba(7,5,2,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border);
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+  }
+  .lang-toggle {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--muted);
+    padding: 8px 20px;
+    border-radius: 100px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    transition: all 0.3s ease;
+  }
+  .lang-toggle:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Sections */
+  section { padding: 100px 48px; max-width: 1100px; margin: 0 auto; }
+
+  /* Hero */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 120px;
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .hero::before {
+    content: '';
+    position: fixed;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(201,169,110,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .badge {
+    display: inline-block;
+    background: var(--card-bg);
+    border: 1px solid rgba(201,169,110,0.25);
+    color: var(--gold);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 8px 20px;
+    border-radius: 100px;
+    margin-bottom: 28px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 700;
+    line-height: 1.15;
+    color: var(--white);
+    margin-bottom: 24px;
+    max-width: 780px;
+  }
+  h1 em {
+    font-style: italic;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 580px;
+    margin-bottom: 48px;
+    font-weight: 300;
+    line-height: 1.8;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .btn-primary {
+    display: inline-block;
+    background: linear-gradient(135deg, #c9a96e, #8b6914);
+    color: var(--bg);
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    letter-spacing: 0.02em;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,169,110,0.3); }
+
+  .btn-secondary {
+    display: inline-block;
+    border: 1px solid rgba(201,169,110,0.4);
+    color: var(--gold);
+    padding: 15px 32px;
+    border-radius: 100px;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  .btn-secondary:hover { border-color: var(--gold); background: rgba(201,169,110,0.06); }
+
+  .reply-note {
+    margin-top: 16px;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* Section headings */
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-weight: 700;
+    color: var(--white);
+    margin-bottom: 16px;
+  }
+  h2 em {
+    font-style: italic;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .section-sub {
+    color: var(--muted);
+    font-size: 1rem;
+    margin-bottom: 52px;
+    max-width: 520px;
+    font-weight: 300;
+  }
+
+  /* Card grid */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    transition: all 0.3s ease;
+  }
+  .card:hover { border-color: rgba(201,169,110,0.2); transform: translateY(-3px); }
+  .card-icon { font-size: 1.4rem; margin-bottom: 14px; }
+  .card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--white);
+    margin-bottom: 8px;
+  }
+  .card-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+  /* Pricing */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .price-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 40px 36px;
+    transition: all 0.3s ease;
+  }
+  .price-card.featured {
+    border-color: rgba(201,169,110,0.3);
+    background: rgba(201,169,110,0.04);
+  }
+  .price-card:hover { transform: translateY(-4px); }
+  .price-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .price-amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--white);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .price-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 20px; }
+
+  .gold-pill {
+    display: inline-block;
+    background: rgba(201,169,110,0.1);
+    border: 1px solid rgba(201,169,110,0.3);
+    color: var(--gold-light);
+    padding: 10px 22px;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  /* Pills row */
+  .pills-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 24px 0;
+  }
+  .pill {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    color: var(--white);
+    padding: 8px 20px;
+    border-radius: 100px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  .pill:hover { border-color: rgba(201,169,110,0.3); color: var(--gold); }
+
+  .pill-gold {
+    background: rgba(201,169,110,0.08);
+    border: 1px solid rgba(201,169,110,0.2);
+    color: var(--gold);
+  }
+
+  /* Why Me */
+  .why-me-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 32px 0;
+  }
+  .why-me-list li {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 20px 24px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: var(--muted);
+    transition: all 0.3s ease;
+  }
+  .why-me-list li:hover { border-color: rgba(201,169,110,0.15); color: var(--white); }
+  .why-me-list .icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+  .portfolio-note {
+    margin-top: 28px;
+    padding: 24px 28px;
+    background: rgba(201,169,110,0.04);
+    border: 1px solid rgba(201,169,110,0.15);
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: var(--gold-light);
+    font-style: italic;
+    font-family: 'Playfair Display', serif;
+  }
+
+  /* Divider */
+  .divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    margin: 16px 0 40px;
+  }
+
+  /* CTA section */
+  .cta-section {
+    text-align: center;
+    padding: 80px 48px 100px;
+  }
+  .cta-section h2 { margin-bottom: 16px; }
+  .cta-section .section-sub { margin: 0 auto 40px; text-align: center; }
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 40px 48px;
+    border-top: 1px solid var(--card-border);
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  footer a { color: var(--gold); text-decoration: none; }
+
+  /* Credibility sub-label */
+  .cred-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--gold-dim);
+    font-weight: 500;
+    margin-bottom: 14px;
+    margin-top: 36px;
+  }
+  .cred-label:first-child { margin-top: 0; }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    section { padding: 80px 24px; }
+    .hero { padding: 120px 24px 60px; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .card-grid { grid-template-columns: 1fr 1fr; }
+    .cta-section { padding: 60px 24px 80px; }
+  }
+  @media (max-width: 480px) {
+    .card-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Alekss Prenclavs</div>
+  <button class="lang-toggle" onclick="toggleLang()" id="langBtn">LV</button>
+</nav>
+
+<!-- HERO -->
+<div style="padding: 0 48px; max-width: 1100px; margin: 0 auto;">
+  <div class="hero">
+    <div class="badge fade-in" data-en="Ecommerce Specialist · 7 Years" data-lv="E-komercijas Speciālists · 7 Gadi">Ecommerce Specialist · 7 Years</div>
+    <h1 class="fade-in-delay-1">
+      <span data-en='Your Store Is <em>Leaking Money.</em> I Know Where.' data-lv='Tavs Veikals <em>Zaudē Naudu.</em> Es Zinu Kur.'>Your Store Is <em>Leaking Money.</em> I Know Where.</span>
+    </h1>
+    <p class="hero-sub fade-in-delay-2" data-en="I go through your store page by page, find the exact spots where customers drop off, and send you a written report with specific fixes — within 24–48 hours. No fluff, no agency deck. Just what's broken and how to fix it." data-lv="Es izejot cauri tavam veikalam lapa pa lapai, atrodu tieši tos punktus, kur klienti aiziet, un nosūtu tev rakstisku pārskatu ar konkrētiem labojumiem — 24–48 stundu laikā. Bez tukšiem vārdiem. Tikai tas, kas ir salūzis, un kā to salabot.">
+      I go through your store page by page, find the exact spots where customers drop off, and send you a written report with specific fixes — within 24–48 hours. No fluff, no agency deck. Just what's broken and how to fix it.
+    </p>
+    <div class="hero-cta fade-in-delay-3">
+      <a href="mailto:prenclavsalekss@gmail.com?subject=Store Audit Request" class="btn-primary" data-en="Get Your Store Audited" data-lv="Pasūtīt Veikala Auditu">Get Your Store Audited</a>
+      <a href="mailto:prenclavsalekss@gmail.com?subject=Audit Call Request" class="btn-secondary" data-en="Book a call first →" data-lv="Vispirms rezervēt zvanu →">Book a call first →</a>
+    </div>
+    <p class="reply-note fade-in-delay-3" data-en="Usually reply within a few hours." data-lv="Parasti atbildu dažu stundu laikā.">Usually reply within a few hours.</p>
+  </div>
+</div>
+
+<!-- WHAT'S INCLUDED -->
+<section class="reveal">
+  <div class="badge" data-en="What's Included" data-lv="Kas Iekļauts">What's Included</div>
+  <div class="divider"></div>
+  <h2 data-en="Every audit covers <em>all of this</em>" data-lv="Katrs audits aptver <em>visu šo</em>">Every audit covers <em>all of this</em></h2>
+  <p class="section-sub" data-en="Eight areas. Written report. Prioritized by revenue impact — so you know what to fix first." data-lv="Astoņas jomas. Rakstisks pārskats. Prioritizēts pēc ienākumu ietekmes — tā tu zini, ko labot vispirms.">Eight areas. Written report. Prioritized by revenue impact — so you know what to fix first.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <div class="card-title" data-en="Conversion Rate Analysis" data-lv="Konversijas Likmes Analīze">Conversion Rate Analysis</div>
+      <div class="card-desc" data-en="Where visitors drop off and why." data-lv="Kur apmeklētāji aiziet un kāpēc.">Where visitors drop off and why.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🛍️</div>
+      <div class="card-title" data-en="Product Page Audit" data-lv="Produktu Lapas Audits">Product Page Audit</div>
+      <div class="card-desc" data-en="Copy, images, CTAs — does it actually sell?" data-lv="Teksts, attēli, CTA pogas — vai tas tiešām pārdod?">Copy, images, CTAs — does it actually sell?</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">💳</div>
+      <div class="card-title" data-en="Checkout Flow Review" data-lv="Maksājumu Procesa Pārskats">Checkout Flow Review</div>
+      <div class="card-desc" data-en="Friction points killing conversions at the final step." data-lv="Berzes punkti, kas iznīcina konversijas pēdējā solī.">Friction points killing conversions at the final step.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔒</div>
+      <div class="card-title" data-en="Trust Signals Check" data-lv="Uzticamības Signālu Pārbaude">Trust Signals Check</div>
+      <div class="card-desc" data-en="Do visitors actually trust you enough to buy?" data-lv="Vai apmeklētāji tev uzticas pietiekami, lai pirktu?">Do visitors actually trust you enough to buy?</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📱</div>
+      <div class="card-title" data-en="Mobile Experience Review" data-lv="Mobilās Pieredzes Pārskats">Mobile Experience Review</div>
+      <div class="card-desc" data-en="70%+ of shoppers are on mobile. Is yours broken?" data-lv="70%+ pircēju ir mobilajās ierīcēs. Vai tavējais ir salūzis?">70%+ of shoppers are on mobile. Is yours broken?</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <div class="card-title" data-en="SEO Basics Check" data-lv="SEO Pamatu Pārbaude">SEO Basics Check</div>
+      <div class="card-desc" data-en="Title tags, descriptions, structure — quick wins." data-lv="Virsrakstu tagi, apraksti, struktūra — ātrās uzvaras.">Title tags, descriptions, structure — quick wins.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📄</div>
+      <div class="card-title" data-en="Written Report + Priority List" data-lv="Rakstisks Pārskats + Prioritāšu Saraksts">Written Report + Priority List</div>
+      <div class="card-desc" data-en="Clear fixes, ranked by impact. No fluff." data-lv="Skaidri labojumi, ranžēti pēc ietekmes. Bez tukšiem vārdiem.">Clear fixes, ranked by impact. No fluff.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📞</div>
+      <div class="card-title" data-en="30-Min Walkthrough Call" data-lv="30 Min. Skaidrojošs Zvans">30-Min Walkthrough Call</div>
+      <div class="card-desc" data-en="I walk you through the findings. You ask anything." data-lv="Es izskaidroju atklājumus. Tu jautā visu, ko gribi.">I walk you through the findings. You ask anything.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="reveal">
+  <div class="badge" data-en="Pricing" data-lv="Cenas">Pricing</div>
+  <div class="divider"></div>
+  <h2 data-en="Straight to the <em>point</em>" data-lv="Tieši pie <em>lietas</em>">Straight to the <em>point</em></h2>
+  <p class="section-sub" data-en="No surprise invoices. Pick your tier, I'll get started." data-lv="Bez pārsteiguma rēķiniem. Izvēlies savu līmeni, es sākšu darbu.">No surprise invoices. Pick your tier, I'll get started.</p>
+
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-label" data-en="Starter Audit" data-lv="Sākuma Audits">Starter Audit</div>
+      <div class="price-amount">€75</div>
+      <div class="price-sub" data-en="Stores with under 50 products" data-lv="Veikali ar mazāk nekā 50 produktiem">Stores with under 50 products</div>
+    </div>
+    <div class="price-card featured">
+      <div class="price-label" data-en="Full Audit" data-lv="Pilnais Audits">Full Audit</div>
+      <div class="price-amount">€150</div>
+      <div class="price-sub" data-en="Stores with 50+ products" data-lv="Veikali ar 50+ produktiem">Stores with 50+ products</div>
+    </div>
+  </div>
+
+  <div class="gold-pill" data-en="📈 Most stores recover 3–5× this in the first month" data-lv="📈 Lielākā daļa veikalu atgūst 3–5× šo summu pirmajā mēnesī">📈 Most stores recover 3–5× this in the first month</div>
+</section>
+
+<!-- CREDIBILITY -->
+<section class="reveal">
+  <div class="badge" data-en="Track Record" data-lv="Darba Pieredze">Track Record</div>
+  <div class="divider"></div>
+  <h2 data-en="I've done this at <em>scale</em>" data-lv="Esmu to darījis <em>lielos mērogos</em>">I've done this at <em>scale</em></h2>
+
+  <div class="cred-label" data-en="Brands I've worked with at Scandiweb" data-lv="Zīmoli, ar kuriem strādāju Scandiweb">Brands I've worked with at Scandiweb</div>
+  <div class="pills-row">
+    <span class="pill">BMW</span>
+    <span class="pill">Samsung</span>
+    <span class="pill">Puma</span>
+    <span class="pill">New York Times</span>
+    <span class="pill">The Met</span>
+    <span class="pill">Rockar</span>
+    <span class="pill">Macron</span>
+  </div>
+
+  <div class="cred-label" data-en="Stores I manage right now" data-lv="Veikali, ko pārvaldīju šobrīd">Stores I manage right now</div>
+  <div class="pills-row">
+    <span class="pill pill-gold">Pet24</span>
+    <span class="pill pill-gold">Save24</span>
+    <span class="pill pill-gold">Loverte</span>
+    <span class="pill pill-gold">CandyPop</span>
+    <span class="pill pill-gold">Lemona</span>
+  </div>
+</section>
+
+<!-- WHY ME -->
+<section class="reveal">
+  <div class="badge" data-en="Honest Talk" data-lv="Godīgs Saruns">Honest Talk</div>
+  <div class="divider"></div>
+  <h2 data-en="Why not just <em>hire an agency?</em>" data-lv="Kāpēc vienkārši <em>nealgot aģentūru?</em>">Why not just <em>hire an agency?</em></h2>
+
+  <ul class="why-me-list">
+    <li>
+      <span class="icon">😴</span>
+      <span data-en='"Agencies invoice you first, then go &apos;busy this week&apos;"' data-lv='"Aģentūras vispirms izraksta rēķinu, tad pazūd ar &apos;šonedēļ esam aizņemti&apos;"'>"Agencies invoice you first, then go 'busy this week'"</span>
+    </li>
+    <li>
+      <span class="icon">💸</span>
+      <span data-en='"They charge €2000 for what I do in 48 hours"' data-lv='"Viņi iekasē €2000 par to, ko es izdarīšu 48 stundās"'>"They charge €2000 for what I do in 48 hours"</span>
+    </li>
+    <li>
+      <span class="icon">🎭</span>
+      <span data-en='"You get a junior doing the work, senior taking the credit"' data-lv='"Darbu dara juniori, kredītus ņem senjori"'>"You get a junior doing the work, senior taking the credit"</span>
+    </li>
+    <li>
+      <span class="icon">🤝</span>
+      <span data-en='"I&apos;m one person. You get me. Not my intern."' data-lv='"Es esmu viena persona. Tu saņem mani. Ne manu praktikantu."'>"I'm one person. You get me. Not my intern."</span>
+    </li>
+  </ul>
+
+  <div class="portfolio-note" data-en='"I&apos;m building my portfolio. Your success becomes my case study. That&apos;s why my prices are what they are."' data-lv='"Es veidoju savu portfolio. Tavs panākums kļūst par manu gadījuma izpēti. Tāpēc manas cenas ir tādas, kādas tās ir."'>
+    "I'm building my portfolio. Your success becomes my case study. That's why my prices are what they are."
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section reveal">
+  <h2 data-en="Ready to stop the <em>leaks?</em>" data-lv="Gatavs apturēt <em>zudumus?</em>">Ready to stop the <em>leaks?</em></h2>
+  <p class="section-sub" data-en="Send a message, I'll take a look at your store and we figure out the rest from there." data-lv="Nosūti ziņu, es apskatīšu tavu veikalu un tad izdomāsim pārējo.">Send a message, I'll take a look at your store and we figure out the rest from there.</p>
+  <div class="cta-buttons">
+    <a href="mailto:prenclavsalekss@gmail.com?subject=Store Audit Request" class="btn-primary" data-en="Get Your Store Audited" data-lv="Pasūtīt Veikala Auditu">Get Your Store Audited</a>
+    <a href="mailto:prenclavsalekss@gmail.com?subject=Audit Call Request" class="btn-secondary" data-en="Book a call first →" data-lv="Vispirms rezervēt zvanu →">Book a call first →</a>
+  </div>
+  <p class="reply-note" data-en="Usually reply within a few hours." data-lv="Parasti atbildu dažu stundu laikā.">Usually reply within a few hours.</p>
+</div>
+
+<footer>
+  <p>Alekss Prenclavs · <a href="mailto:prenclavsalekss@gmail.com">prenclavsalekss@gmail.com</a> · <a href="https://bobfromzero.github.io/bronai" target="_blank">bobfromzero.github.io/bronai</a></p>
+</footer>
+
+<script>
+  // Lang toggle
+  let lang = 'en';
+  function toggleLang() {
+    lang = lang === 'en' ? 'lv' : 'en';
+    document.getElementById('langBtn').textContent = lang === 'en' ? 'LV' : 'EN';
+    document.querySelectorAll('[data-en]').forEach(el => {
+      const val = el.getAttribute('data-' + lang);
+      if (!val) return;
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+        el.value = val;
+      } else {
+        el.innerHTML = val;
+      }
+    });
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

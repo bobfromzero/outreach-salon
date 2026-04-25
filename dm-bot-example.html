@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Booking Bot — Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070502;
+    --gold: #c9a96e;
+    --gold-light: #e8c98a;
+    --gold-dim: #8b6914;
+    --white: #f0ece4;
+    --muted: #6b6560;
+    --card-bg: rgba(255,255,255,0.025);
+    --card-border: rgba(201,169,110,0.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--white);
+    font-family: 'Inter', sans-serif; line-height: 1.7;
+    overflow-x: hidden; min-height: 100vh;
+  }
+
+  /* Animated particle / geometric background */
+  .bg-canvas {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .bg-canvas::before {
+    content: '';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 20%, rgba(201,169,110,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 80% 80%, rgba(139,105,20,0.04) 0%, transparent 60%),
+      radial-gradient(circle 300px at 50% 50%, rgba(201,169,110,0.03) 0%, transparent 100%);
+  }
+  .geo-line {
+    position: absolute; background: linear-gradient(90deg, transparent, rgba(201,169,110,0.08), transparent);
+    height: 1px; width: 100%;
+  }
+  .geo-line:nth-child(2) { top: 20%; animation: linePulse 6s ease-in-out infinite; }
+  .geo-line:nth-child(3) { top: 50%; animation: linePulse 8s ease-in-out 2s infinite; }
+  .geo-line:nth-child(4) { top: 80%; animation: linePulse 7s ease-in-out 4s infinite; }
+
+  .geo-circle {
+    position: absolute; border-radius: 50%;
+    border: 1px solid rgba(201,169,110,0.06);
+    animation: circlePulse 10s ease-in-out infinite;
+  }
+  .geo-circle:nth-child(5) { width: 400px; height: 400px; top: -100px; right: -100px; }
+  .geo-circle:nth-child(6) { width: 250px; height: 250px; bottom: 100px; left: -80px; animation-delay: 3s; }
+  .geo-circle:nth-child(7) { width: 600px; height: 600px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation-delay: 1.5s; opacity: 0.5; }
+
+  @keyframes linePulse { 0%,100% { opacity: 0.3; } 50% { opacity: 0.7; } }
+  @keyframes circlePulse { 0%,100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } }
+  @keyframes circlePulse6 { 0%,100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.05); } }
+
+  /* Particles */
+  .particle {
+    position: absolute; width: 2px; height: 2px; border-radius: 50%;
+    background: var(--gold); opacity: 0;
+    animation: particleFloat linear infinite;
+  }
+  @keyframes particleFloat {
+    0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10% { opacity: 0.6; }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(-100px) translateX(30px); opacity: 0; }
+  }
+
+  /* Layout */
+  .page-wrapper { position: relative; z-index: 1; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 48px;
+    background: rgba(7,5,2,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border);
+  }
+  .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--gold); }
+  .lang-toggle {
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--muted);
+    padding: 8px 20px; border-radius: 100px; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.08em; transition: all 0.3s;
+  }
+  .lang-toggle:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* Hero */
+  .hero { text-align: center; padding: 130px 24px 50px; }
+  .badge { display: inline-block; background: var(--card-bg); border: 1px solid rgba(201,169,110,0.25); color: var(--gold); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 20px; border-radius: 100px; margin-bottom: 28px; }
+  h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 700; line-height: 1.2; margin-bottom: 16px; }
+  h1 em { font-style: italic; background: linear-gradient(135deg, var(--gold-light), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-sub { color: var(--muted); font-size: 1rem; font-weight: 300; max-width: 440px; margin: 0 auto; }
+
+  /* Phone mockup */
+  .phone-section { display: flex; justify-content: center; padding: 40px 24px 20px; }
+  .phone-wrap { position: relative; }
+  .phone-glow {
+    position: absolute; inset: -30px; border-radius: 60px;
+    background: radial-gradient(circle, rgba(201,169,110,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .phone {
+    width: 320px;
+    background: #000;
+    border-radius: 44px;
+    border: 2px solid #2a2a2a;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative;
+  }
+
+  /* Phone notch */
+  .phone-notch {
+    background: #000; height: 28px; display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .notch-pill { width: 100px; height: 24px; background: #111; border-radius: 0 0 20px 20px; position: absolute; top: 0; }
+
+  /* IG DM Header */
+  .ig-header {
+    background: #000; padding: 12px 16px 10px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+  .ig-back { color: #fff; font-size: 1.1rem; }
+  .ig-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #c9a96e, #8b6914); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: var(--bg); flex-shrink: 0; }
+  .ig-info { flex: 1; }
+  .ig-name { font-size: 0.85rem; font-weight: 600; color: #fff; line-height: 1.2; }
+  .ig-status { font-size: 0.7rem; color: #555; }
+
+  /* Chat area */
+  .ig-chat {
+    background: #000; padding: 14px 12px;
+    display: flex; flex-direction: column; gap: 10px;
+    max-height: 480px; overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .ig-chat::-webkit-scrollbar { display: none; }
+
+  .msg-group { display: flex; flex-direction: column; gap: 3px; }
+  .msg-group.user { align-items: flex-end; }
+  .msg-group.bot { align-items: flex-start; }
+
+  .bubble {
+    max-width: 220px; padding: 9px 13px; font-size: 0.82rem; line-height: 1.5;
+    position: relative;
+  }
+  .msg-group.user .bubble {
+    background: #3797f0; color: #fff;
+    border-radius: 18px 18px 4px 18px;
+  }
+  .msg-group.bot .bubble {
+    background: #262626; color: #f0ece4;
+    border-radius: 18px 18px 18px 4px;
+  }
+  .msg-time { font-size: 0.62rem; color: #555; margin-top: 2px; padding: 0 4px; }
+  .bot-tag { font-size: 0.6rem; color: var(--gold-dim); letter-spacing: 0.08em; padding: 0 4px; }
+
+  /* Typing indicator */
+  .typing { display: flex; align-items: center; gap: 4px; padding: 10px 14px; background: #262626; border-radius: 18px; width: fit-content; }
+  .typing span { width: 5px; height: 5px; background: #555; border-radius: 50%; animation: typingDot 1.2s ease-in-out infinite; }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingDot { 0%,60%,100% { transform: scale(1); opacity: 0.5; } 30% { transform: scale(1.3); opacity: 1; } }
+
+  /* Message input */
+  .ig-input {
+    background: #000; padding: 10px 12px; display: flex; align-items: center; gap: 8px;
+    border-top: 1px solid #1a1a1a;
+  }
+  .ig-input-field { flex: 1; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 20px; padding: 8px 14px; font-size: 0.78rem; color: #555; }
+  .ig-send { color: #3797f0; font-size: 0.85rem; font-weight: 600; cursor: default; }
+
+  /* Stats */
+  .stats-section { padding: 40px 24px 20px; max-width: 700px; margin: 0 auto; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .stat-card {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 16px; padding: 24px 16px; text-align: center;
+    transition: all 0.3s ease;
+  }
+  .stat-card:hover { border-color: rgba(201,169,110,0.2); transform: translateY(-3px); }
+  .stat-value {
+    font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    line-height: 1.1; margin-bottom: 8px;
+  }
+  .stat-label { font-size: 0.75rem; color: var(--muted); line-height: 1.4; }
+
+  /* Bottom section */
+  .bottom-section { text-align: center; padding: 50px 24px 80px; max-width: 600px; margin: 0 auto; }
+  h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; color: var(--white); margin-bottom: 16px; }
+  h2 em { font-style: italic; background: linear-gradient(135deg, var(--gold-light), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .price-note { color: var(--muted); font-size: 0.95rem; margin-bottom: 32px; }
+  .price-note strong { color: var(--gold); }
+
+  .btn-primary { display: inline-block; background: linear-gradient(135deg, #c9a96e, #8b6914); color: var(--bg); padding: 16px 40px; border-radius: 100px; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.3s ease; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,169,110,0.3); }
+
+  footer { text-align: center; padding: 40px 24px; border-top: 1px solid var(--card-border); color: var(--muted); font-size: 0.82rem; }
+  footer a { color: var(--gold); text-decoration: none; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.8s ease forwards; }
+  .fade-in-d1 { animation: fadeIn 0.8s ease 0.2s forwards; opacity: 0; }
+  .fade-in-d2 { animation: fadeIn 0.8s ease 0.4s forwards; opacity: 0; }
+  .reveal { opacity: 0; transform: translateY(24px); transition: 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  @media (max-width: 600px) {
+    nav { padding: 16px 20px; }
+    .phone { width: 290px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Animated background -->
+<div class="bg-canvas" aria-hidden="true">
+  <div class="geo-line"></div>
+  <div class="geo-line"></div>
+  <div class="geo-line"></div>
+  <div class="geo-circle"></div>
+  <div class="geo-circle"></div>
+  <div class="geo-circle"></div>
+</div>
+
+<div class="page-wrapper">
+
+<nav>
+  <div class="nav-logo">Alekss Prenclavs</div>
+  <button class="lang-toggle" onclick="toggleLang()" id="langBtn">EN</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="badge fade-in" data-en="Live Demo" data-lv="Tiešraides Demo">Live Demo</div>
+  <h1 class="fade-in-d1">
+    <span data-en='Your Salon&apos;s DMs at <em>11pm</em>' data-lv='Tava Salona DM ziņas <em>plkst. 23</em>'>Tava Salona DM ziņas <em>plkst. 23</em></span>
+  </h1>
+  <p class="hero-sub fade-in-d2" data-en="While you sleep, the bot books appointments. Real conversation, real booking." data-lv="Kamēr tu guli, bots rezervē tikšanās. Īsta saruna, īsta rezervācija.">Kamēr tu guli, bots rezervē tikšanās. Īsta saruna, īsta rezervācija.</p>
+</div>
+
+<!-- PHONE -->
+<div class="phone-section reveal">
+  <div class="phone-wrap">
+    <div class="phone-glow"></div>
+    <div class="phone">
+      <div class="phone-notch">
+        <div class="notch-pill"></div>
+      </div>
+
+      <!-- Instagram DM header -->
+      <div class="ig-header">
+        <div class="ig-back">‹</div>
+        <div class="ig-avatar">NS</div>
+        <div class="ig-info">
+          <div class="ig-name">Nails Studio</div>
+          <div class="ig-status" data-en="Active now" data-lv="Aktīvs tagad">Aktīvs tagad</div>
+        </div>
+      </div>
+
+      <!-- Chat messages -->
+      <div class="ig-chat" id="igChat">
+
+        <div class="msg-group user" style="opacity:0" data-delay="1300">
+          <div class="bubble">Sveiki! Vai jums ir brīvas vietas rītdien gēla manikīram?</div>
+          <div class="msg-time">23:14</div>
+        </div>
+
+        <div class="msg-group bot typing-placeholder" data-delay="1900" style="opacity:0">
+          <div class="typing"><span></span><span></span><span></span></div>
+        </div>
+
+        <div class="msg-group bot" style="opacity:0" data-delay="2800">
+          <div class="bubble">Sveiki! Jā, mums ir brīvas vietas 😊 Cikos jums būtu ērtāk — ap pulksten 10:00, 13:00 vai 16:00?</div>
+          <div class="msg-time">23:14</div>
+          <div class="bot-tag" data-en="✦ AI" data-lv="✦ AI">✦ AI</div>
+        </div>
+
+        <div class="msg-group user" style="opacity:0" data-delay="3800">
+          <div class="bubble">13:00 būtu ideāli!</div>
+          <div class="msg-time">23:15</div>
+        </div>
+
+        <div class="msg-group bot typing-placeholder" data-delay="4300" style="opacity:0">
+          <div class="typing"><span></span><span></span><span></span></div>
+        </div>
+
+        <div class="msg-group bot" style="opacity:0" data-delay="5000">
+          <div class="bubble">Lieliski! Un uz kādu vārdu pierakstīt?</div>
+          <div class="msg-time">23:15</div>
+          <div class="bot-tag" data-en="✦ AI" data-lv="✦ AI">✦ AI</div>
+        </div>
+
+        <div class="msg-group user" style="opacity:0" data-delay="6000">
+          <div class="bubble">Kristīne</div>
+          <div class="msg-time">23:15</div>
+        </div>
+
+        <div class="msg-group bot typing-placeholder" data-delay="6500" style="opacity:0">
+          <div class="typing"><span></span><span></span><span></span></div>
+        </div>
+
+        <div class="msg-group bot" style="opacity:0" data-delay="7500">
+          <div class="bubble">Perfekti, Kristīne! Tad pierakstu jūs rītdien plkst. 13:00 uz gēla manikīru. Apmeklējums apstiprināts ✅ Ja kaut kas mainīsies, vienkārši rakstiet šeit 😊</div>
+          <div class="msg-time">23:16</div>
+          <div class="bot-tag" data-en="✦ AI" data-lv="✦ AI">✦ AI</div>
+        </div>
+
+        <div class="msg-group user" style="opacity:0" data-delay="8800">
+          <div class="bubble">Paldies, lieliski!</div>
+          <div class="msg-time">23:16</div>
+        </div>
+
+        <div class="msg-group bot typing-placeholder" data-delay="9200" style="opacity:0">
+          <div class="typing"><span></span><span></span><span></span></div>
+        </div>
+
+        <div class="msg-group bot" style="opacity:0" data-delay="10000">
+          <div class="bubble">Uz tikšanos rīt! 🌟</div>
+          <div class="msg-time">23:16</div>
+          <div class="bot-tag" data-en="✦ AI" data-lv="✦ AI">✦ AI</div>
+        </div>
+
+      </div>
+
+      <!-- Input bar -->
+      <div class="ig-input">
+        <div class="ig-input-field" data-en="Message..." data-lv="Rakstīt...">Rakstīt...</div>
+        <div class="ig-send">›</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-section reveal">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">24/7</div>
+      <div class="stat-label" data-en="Never misses a message" data-lv="Nekad nepalaiž garām ziņu">Nekad nepalaiž garām ziņu</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">&lt;30s</div>
+      <div class="stat-label" data-en="Average reply time" data-lv="Vidējais atbildes laiks">Vidējais atbildes laiks</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">0</div>
+      <div class="stat-label" data-en="Missed bookings" data-lv="Palaistas rezervācijas">Palaistas rezervācijas</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">€0</div>
+      <div class="stat-label" data-en="Extra staff costs" data-lv="Papildu personāla izmaksas">Papildu personāla izmaksas</div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM CTA -->
+<div class="bottom-section reveal">
+  <h2 data-en='This is what we set up <em>for your salon.</em>' data-lv='To mēs uzstādām <em>tavam salonam.</em>'>To mēs uzstādām <em>tavam salonam.</em></h2>
+  <p class="price-note" data-en="Setup: <strong>€200–300</strong> one-time · Tools: ~€15–25/month · Ready in 48–72 hours" data-lv="Uzstādīšana: <strong>€200–300</strong> vienreizējs · Rīki: ~€15–25/mēnesī · Gatavs 48–72 stundu laikā">Uzstādīšana: <strong>€200–300</strong> vienreizējs · Rīki: ~€15–25/mēnesī · Gatavs 48–72 stundu laikā</p>
+  <a href="mailto:prenclavsalekss@gmail.com?subject=Booking Bot Setup" class="btn-primary" data-en="Set Up My Booking Bot →" data-lv="Uzstādīt Manu Rezervēšanas Botu →">Uzstādīt Manu Rezervēšanas Botu →</a>
+</div>
+
+<footer>
+  <p>Alekss Prenclavs · <a href="mailto:prenclavsalekss@gmail.com">prenclavsalekss@gmail.com</a> · <a href="https://bobfromzero.github.io/bronai" target="_blank">bobfromzero.github.io/bronai</a></p>
+</footer>
+
+</div><!-- end page-wrapper -->
+
+<script>
+  // Lang toggle
+  let lang = 'lv';
+  function toggleLang() {
+    lang = lang === 'lv' ? 'en' : 'lv';
+    document.getElementById('langBtn').textContent = lang === 'lv' ? 'EN' : 'LV';
+    document.querySelectorAll('[data-en]').forEach(el => {
+      const val = el.getAttribute('data-' + lang);
+      if (!val) return;
+      el.innerHTML = val;
+    });
+  }
+
+  // Scroll reveal
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+  // Animate chat messages sequentially
+  const chatEl = document.getElementById('igChat');
+  const allMsgs = chatEl.querySelectorAll('[data-delay]');
+
+  function animateMessages() {
+    chatEl.scrollTop = 0;
+    const nonTypingMsgs = Array.from(allMsgs).filter(m => !m.classList.contains('typing-placeholder'));
+    const total = nonTypingMsgs.length;
+    allMsgs.forEach(msg => {
+      const delay = parseInt(msg.getAttribute('data-delay'));
+      const isTyping = msg.classList.contains('typing-placeholder');
+      const msgIndex = nonTypingMsgs.indexOf(msg);
+      setTimeout(() => {
+        msg.style.opacity = '1';
+        msg.style.transition = 'opacity 0.4s ease';
+        if (isTyping) {
+          setTimeout(() => {
+            msg.style.opacity = '0';
+            msg.style.transition = 'opacity 0.3s ease';
+          }, 600);
+        } else {
+          // Start scrolling down only after 4th message
+          if (msgIndex >= 4) {
+            setTimeout(() => {
+              chatEl.scrollTo({ top: chatEl.scrollHeight, behavior: 'smooth' });
+            }, 200);
+          }
+        }
+      }, delay);
+    });
+  }
+
+  // Reset all messages to invisible first
+  allMsgs.forEach(m => { m.style.opacity = '0'; m.style.transition = 'none'; });
+  chatEl.scrollTop = 0;
+
+  // Wait for user to scroll to phone section, then start
+  let chatStarted = false;
+  function checkPhoneVisible() {
+    if (chatStarted) return;
+    const phone = document.querySelector('.phone-section');
+    const rect = phone.getBoundingClientRect();
+    const inView = rect.top < window.innerHeight * 0.85 && rect.bottom > 0;
+    if (inView) {
+      chatStarted = true;
+      // 800ms after phone comes into view, start the conversation
+      setTimeout(() => {
+        chatEl.scrollTop = 0;
+        animateMessages();
+        // Replay every 16 seconds
+        setInterval(() => {
+          allMsgs.forEach(m => { m.style.opacity = '0'; m.style.transition = 'opacity 0.2s ease'; });
+          setTimeout(() => {
+            chatEl.scrollTop = 0;
+            animateMessages();
+          }, 600);
+        }, 16000);
+      }, 800);
+    }
+  }
+  // Poll on scroll and on load
+  window.addEventListener('scroll', checkPhoneVisible, { passive: true });
+  // Also check after a short delay in case it's already visible
+  setTimeout(checkPhoneVisible, 300);
+
+  // Spawn particles
+  function spawnParticles() {
+    const canvas = document.querySelector('.bg-canvas');
+    for (let i = 0; i < 20; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDuration = (8 + Math.random() * 12) + 's';
+      p.style.animationDelay = (Math.random() * 12) + 's';
+      p.style.opacity = Math.random() * 0.4;
+      canvas.appendChild(p);
+    }
+  }
+  spawnParticles();
+</script>
+</body>
+</html>

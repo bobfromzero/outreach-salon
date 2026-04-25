@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Before & After — Alekss Prenclavs</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070502;
+    --gold: #c9a96e;
+    --gold-light: #e8c98a;
+    --gold-dim: #8b6914;
+    --white: #f0ece4;
+    --muted: #6b6560;
+    --card-bg: rgba(255,255,255,0.025);
+    --card-border: rgba(201,169,110,0.08);
+    --bad: rgba(180,30,30,0.12);
+    --bad-border: rgba(180,30,30,0.2);
+    --good: rgba(201,169,110,0.08);
+    --good-border: rgba(201,169,110,0.25);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--white); font-family: 'Inter', sans-serif; line-height: 1.7; overflow-x: hidden; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.8s ease forwards; }
+  .fade-in-d1 { animation: fadeIn 0.8s ease 0.15s forwards; opacity: 0; }
+  .fade-in-d2 { animation: fadeIn 0.8s ease 0.3s forwards; opacity: 0; }
+  .reveal { opacity: 0; transform: translateY(28px); transition: 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 48px;
+    background: rgba(7,5,2,0.85); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border);
+  }
+  .nav-logo { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--gold); }
+  .lang-toggle {
+    background: var(--card-bg); border: 1px solid var(--card-border); color: var(--muted);
+    padding: 8px 20px; border-radius: 100px; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.08em; transition: all 0.3s;
+  }
+  .lang-toggle:hover { border-color: var(--gold); color: var(--gold); }
+
+  .hero { text-align: center; padding: 140px 48px 60px; max-width: 800px; margin: 0 auto; }
+  .badge { display: inline-block; background: var(--card-bg); border: 1px solid rgba(201,169,110,0.25); color: var(--gold); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; padding: 8px 20px; border-radius: 100px; margin-bottom: 28px; }
+  h1 { font-family: 'Playfair Display', serif; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 700; line-height: 1.2; margin-bottom: 20px; }
+  h1 em, h2 em { font-style: italic; background: linear-gradient(135deg, var(--gold-light), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-sub { color: var(--muted); font-size: 1rem; font-weight: 300; max-width: 500px; margin: 0 auto; }
+
+  /* Tabs */
+  .tabs-wrapper { display: flex; justify-content: center; gap: 12px; padding: 40px 48px 0; }
+  .tab-btn {
+    padding: 12px 32px; border-radius: 100px; font-size: 0.9rem; font-weight: 500; cursor: pointer;
+    border: 1px solid var(--card-border); background: var(--card-bg); color: var(--muted);
+    transition: all 0.3s ease; letter-spacing: 0.03em;
+  }
+  .tab-btn.active { background: linear-gradient(135deg, #c9a96e, #8b6914); color: var(--bg); border-color: transparent; }
+  .tab-btn:hover:not(.active) { border-color: rgba(201,169,110,0.3); color: var(--gold); }
+
+  /* Cards section */
+  .cards-section { padding: 52px 48px 80px; max-width: 1100px; margin: 0 auto; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Flip card grid */
+  .flip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  .flip-card { perspective: 1200px; height: 360px; cursor: pointer; }
+  .flip-card-inner {
+    position: relative; width: 100%; height: 100%;
+    transform-style: preserve-3d;
+    transition: transform 0.65s cubic-bezier(0.4,0,0.2,1);
+  }
+  .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+
+  .flip-front, .flip-back {
+    position: absolute; inset: 0; border-radius: 18px; padding: 28px 24px;
+    backface-visibility: hidden; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Front — BAD */
+  .flip-front {
+    background: var(--bad);
+    border: 1px solid var(--bad-border);
+  }
+  .flip-front::before {
+    content: '';
+    position: absolute; inset: 0; border-radius: 18px;
+    background: linear-gradient(135deg, rgba(180,30,30,0.04) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  /* Back — GOOD */
+  .flip-back {
+    background: var(--good);
+    border: 1px solid var(--good-border);
+    transform: rotateY(180deg);
+  }
+  .flip-back::before {
+    content: '';
+    position: absolute; inset: 0; border-radius: 18px;
+    background: linear-gradient(135deg, rgba(201,169,110,0.03) 0%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .card-status { font-size: 1.3rem; margin-bottom: 12px; }
+  .card-title-flip { font-size: 1rem; font-weight: 600; color: var(--white); margin-bottom: 10px; line-height: 1.3; }
+  .card-desc-flip { font-size: 0.82rem; color: var(--muted); line-height: 1.6; flex-grow: 1; }
+
+  /* Mock layout elements — CSS drawn */
+  .mock-layout { margin: 10px 0; display: flex; flex-direction: column; gap: 5px; min-height: 100px; flex-shrink: 0; }
+  .mock-bar { height: 7px; border-radius: 3px; background: rgba(255,255,255,0.06); }
+  .mock-bar.bad { background: rgba(180,30,30,0.25); }
+  .mock-bar.good { background: rgba(201,169,110,0.2); }
+  .mock-bar.w-full { width: 100%; }
+  .mock-bar.w-75 { width: 75%; }
+  .mock-bar.w-50 { width: 50%; }
+  .mock-bar.w-90 { width: 90%; }
+  .mock-bar.w-40 { width: 40%; }
+  .mock-box { height: 36px; border-radius: 6px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); }
+  .mock-box.bad { background: rgba(180,30,30,0.12); border-color: rgba(180,30,30,0.15); }
+  .mock-box.good { background: rgba(201,169,110,0.1); border-color: rgba(201,169,110,0.2); }
+  .mock-img { height: 50px; border-radius: 6px; background: rgba(255,255,255,0.04); }
+  .mock-img.bad { background: rgba(180,30,30,0.1); border: 1px dashed rgba(180,30,30,0.3); }
+  .mock-img.good { background: rgba(201,169,110,0.08); border: 1px solid rgba(201,169,110,0.15); }
+  .mock-stars { color: var(--gold-dim); font-size: 0.75rem; letter-spacing: 2px; }
+  .mock-stars.good { color: var(--gold); }
+  .mock-row { display: flex; gap: 6px; align-items: center; }
+  .mock-thumb { width: 32px; height: 32px; border-radius: 4px; background: rgba(201,169,110,0.1); border: 1px solid rgba(201,169,110,0.15); flex-shrink: 0; }
+  .flip-hint { font-size: 0.7rem; color: var(--muted); text-align: right; margin-top: auto; letter-spacing: 0.05em; }
+
+  /* CTA */
+  .cta-section { text-align: center; padding: 20px 48px 100px; }
+  h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 700; color: var(--white); margin-bottom: 20px; }
+  .btn-primary { display: inline-block; background: linear-gradient(135deg, #c9a96e, #8b6914); color: var(--bg); padding: 16px 40px; border-radius: 100px; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all 0.3s ease; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,169,110,0.3); }
+
+  footer { text-align: center; padding: 40px 48px; border-top: 1px solid var(--card-border); color: var(--muted); font-size: 0.82rem; }
+  footer a { color: var(--gold); text-decoration: none; }
+
+  @media (max-width: 900px) { .flip-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) {
+    .flip-grid { grid-template-columns: 1fr; }
+    nav { padding: 16px 24px; }
+    .hero { padding: 120px 24px 40px; }
+    .cards-section, .cta-section { padding-left: 24px; padding-right: 24px; }
+    .tabs-wrapper { padding: 40px 24px 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Alekss Prenclavs</div>
+  <button class="lang-toggle" onclick="toggleLang()" id="langBtn">LV</button>
+</nav>
+
+<div class="hero">
+  <div class="badge fade-in" data-en="Before & After" data-lv="Pirms & Pēc">Before & After</div>
+  <h1 class="fade-in-d1">
+    <span data-en='Does Your Store <em>Look Like This?</em>' data-lv='Vai Tavs Veikals <em>Izskatās Šādi?</em>'>Does Your Store <em>Look Like This?</em></span>
+  </h1>
+  <p class="hero-sub fade-in-d2" data-en="Tap any card to see the fix. These are the exact problems that quietly kill your sales every day." data-lv="Nospied uz jebkuras kartes, lai redzētu labojumu. Tās ir tieši tās problēmas, kas katru dienu klusi nogalina tavus pārdošanas apjomus.">Tap any card to see the fix. These are the exact problems that quietly kill your sales every day.</p>
+</div>
+
+<!-- TABS -->
+<div class="tabs-wrapper">
+  <button class="tab-btn active" data-tab="ecom" data-en="Ecom Store" data-lv="E-komercijas Veikals" onclick="switchTab('ecom', this)">Ecom Store</button>
+  <button class="tab-btn" data-tab="web" data-en="Regular Website" data-lv="Parasta Mājas Lapa" onclick="switchTab('web', this)">Regular Website</button>
+</div>
+
+<!-- ECOM CARDS -->
+<div class="cards-section">
+  <div class="tab-panel active" id="tab-ecom">
+    <div class="flip-grid">
+
+      <!-- Card 1: No reviews -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en="No Product Reviews" data-lv="Nav Produktu Atsauksmju">No Product Reviews</div>
+            <div class="mock-layout" style="gap:4px;">
+              <div style="height:48px;background:rgba(180,30,30,0.08);border:1px dashed rgba(180,30,30,0.2);border-radius:5px;display:flex;align-items:center;justify-content:center;"><span style="font-size:0.85rem;filter:grayscale(1);opacity:0.3;">📷</span></div>
+              <div class="mock-bar bad" style="width:72%;height:6px;"></div>
+              <div class="mock-bar bad" style="width:38%;height:5px;"></div>
+              <div style="display:flex;align-items:center;gap:5px;margin-top:2px;"><span style="font-size:0.65rem;color:#3a3a3a;letter-spacing:2px;">- - -</span><span style="font-size:0.58rem;color:#3a3a3a;">no reviews</span></div>
+              <div class="mock-box bad" style="height:17px;margin-top:3px;"></div>
+            </div>
+            <div class="card-desc-flip" data-en="No ratings, no trust. Visitors can't tell if anyone's actually bought this." data-lv="Nav vērtējumu, nav uzticamības. Apmeklētāji nevar pateikt, vai kāds to tiešām ir nopircis.">No ratings, no trust. Visitors can't tell if anyone's actually bought this.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en="Star Ratings + Verified Badges" data-lv="Zvaigžņu Vērtējumi + Verificētas Zīmes">Star Ratings + Verified Badges</div>
+            <div class="mock-layout" style="gap:4px;">
+              <div style="height:48px;background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.2);border-radius:5px;display:flex;align-items:center;justify-content:center;"><span style="font-size:1rem;">🛍️</span></div>
+              <div class="mock-bar good" style="width:72%;height:6px;"></div>
+              <div style="display:flex;align-items:center;gap:5px;"><span style="color:#c9a96e;font-size:0.8rem;">★★★★★</span><span style="font-size:0.6rem;color:#c9a96e;">247 reviews</span></div>
+              <div style="font-size:0.52rem;color:#c9a96e;background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.25);border-radius:3px;padding:2px 6px;display:inline-block;">✓ Verified Purchase</div>
+              <div class="mock-box good" style="height:17px;margin-top:3px;"></div>
+            </div>
+            <div class="card-desc-flip" data-en="Star ratings, review count, verified purchase badges. Social proof that converts." data-lv="Zvaigžņu vērtējumi, atsauksmju skaits, verificētu pirkumu zīmes. Sociāls pierādījums, kas konvertē.">Star ratings, review count, verified purchase badges. Social proof that converts.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Blurry photos -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en="Blurry Single Product Photo" data-lv="Miglaina Viena Produkta Fotogrāfija">Blurry Single Product Photo</div>
+            <div class="mock-layout" style="gap:4px;">
+              <div style="height:78px;background:rgba(180,30,30,0.08);border:1px dashed rgba(180,30,30,0.2);border-radius:5px;filter:blur(2px);display:flex;align-items:center;justify-content:center;"><span style="font-size:2rem;">📦</span></div>
+              <div style="font-size:0.58rem;color:#444;margin-top:2px;">✗ no other angles</div>
+            </div>
+            <div class="card-desc-flip" data-en="One bad photo and you've lost the sale. Online shoppers buy with their eyes." data-lv="Viena slikta fotogrāfija un pārdošana ir zaudēta. Tiešsaistes pircēji pērk ar acīm.">One bad photo and you've lost the sale. Online shoppers buy with their eyes.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en="Image Gallery with Zoom + Multiple Angles" data-lv="Attēlu Galerija ar Zoom + Vairāki Leņķi">Image Gallery with Zoom + Multiple Angles</div>
+            <div class="mock-layout" style="gap:5px;">
+              <div style="height:55px;background:linear-gradient(135deg,rgba(201,169,110,0.15),rgba(139,105,20,0.08));border:1px solid rgba(201,169,110,0.2);border-radius:5px;display:flex;align-items:center;justify-content:center;"><span style="font-size:1.3rem;">🛍️</span></div>
+              <div style="display:flex;gap:4px;">
+                <div class="mock-thumb"></div>
+                <div class="mock-thumb"></div>
+                <div class="mock-thumb"></div>
+                <div class="mock-thumb"></div>
+              </div>
+            </div>
+            <div class="card-desc-flip" data-en="Gallery with zoom, lifestyle shots, different angles. Let them see what they're buying." data-lv="Galerija ar zoom, lifestyle fotogrāfijas, dažādi leņķi. Ļauj viņiem redzēt, ko viņi pērk.">Gallery with zoom, lifestyle shots, different angles. Let them see what they're buying.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: CTA hidden -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en='"Add to Cart" Hidden Below Fold' data-lv='"Pievienot grozam" Slēpta Zem Redzamās Zonas'>«Add to Cart» Hidden Below Fold</div>
+            <div class="mock-layout" style="gap:3px;overflow:hidden;">
+              <div style="height:32px;background:rgba(180,30,30,0.06);border:1px solid rgba(180,30,30,0.12);border-radius:4px;"></div>
+              <div class="mock-bar bad" style="width:90%;height:5px;"></div>
+              <div class="mock-bar bad" style="width:100%;height:5px;"></div>
+              <div class="mock-bar bad" style="width:75%;height:5px;"></div>
+              <div class="mock-bar bad" style="width:95%;height:5px;"></div>
+              <div class="mock-bar bad" style="width:85%;height:5px;"></div>
+              <div style="font-size:0.55rem;color:#444;text-align:center;">↓ ↓ ↓</div>
+              <div class="mock-box bad" style="height:15px;opacity:0.3;"></div>
+            </div>
+            <div class="card-desc-flip" data-en="If they have to scroll to find the buy button, half of them won't bother." data-lv="Ja viņiem jāskrolla, lai atrastu pirkšanas pogu, puse no viņiem neuzsāks pūles.">If they have to scroll to find the buy button, half of them won't bother.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en="Bold CTA Above Fold + Urgency Badge" data-lv="Redzama CTA Poga + Steidzamības Zīme">Bold CTA Above Fold + Urgency Badge</div>
+            <div class="mock-layout" style="gap:5px;">
+              <div style="height:38px;background:linear-gradient(135deg,rgba(201,169,110,0.12),rgba(139,105,20,0.06));border:1px solid rgba(201,169,110,0.2);border-radius:5px;"></div>
+              <div style="display:flex;align-items:center;gap:5px;">
+                <div style="background:linear-gradient(135deg,#c9a96e,#8b6914);border-radius:10px;height:21px;flex:1;display:flex;align-items:center;justify-content:center;"><span style="font-size:0.55rem;color:#070502;font-weight:700;">ADD TO CART</span></div>
+                <div style="font-size:0.5rem;color:#e88a8a;background:rgba(232,138,138,0.1);border:1px solid rgba(232,138,138,0.25);border-radius:3px;padding:2px 5px;white-space:nowrap;" data-en="🔴 3 left in stock" data-lv="🔴 3 palikuši noliktavā">🔴 3 left</div>
+              </div>
+              <div class="mock-bar good" style="width:68%;height:5px;"></div>
+            </div>
+            <div class="card-desc-flip" data-en="Big visible CTA, urgency indicator, above the fold. Decision made before they scroll." data-lv="Liela redzama CTA, steidzamības indikators, virs ritināšanas. Lēmums pieņemts pirms ritināšanas.">Big visible CTA, urgency indicator, above the fold. Decision made before they scroll.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: No trust badges -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en="No Trust Badges" data-lv="Nav Uzticamības Zīmju">No Trust Badges</div>
+            <div class="mock-layout" style="gap:5px;">
+              <div style="font-size:0.58rem;color:#3a3a3a;margin-bottom:2px;">— checkout —</div>
+              <div class="mock-bar bad" style="width:90%;height:5px;"></div>
+              <div class="mock-bar bad" style="width:68%;height:5px;"></div>
+              <div class="mock-box bad" style="height:22px;margin-top:4px;display:flex;align-items:center;justify-content:center;"><span style="font-size:0.6rem;color:#555;">Pay Now</span></div>
+            </div>
+            <div class="card-desc-flip" data-en="No secure checkout icons, no payment logos. Visitors think twice about entering their card." data-lv="Nav drošas kasas ikonu, nav maksājumu logo. Apmeklētāji divreiz padomā pirms kartes ievadīšanas.">No secure checkout icons, no payment logos. Visitors think twice about entering their card.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en="Secure Checkout Badges + Payment Logos" data-lv="Drošas Kasas Zīmes + Maksājumu Logo">Secure Checkout Badges + Payment Logos</div>
+            <div class="mock-layout" style="gap:5px;">
+              <div class="mock-box good" style="height:22px;display:flex;align-items:center;justify-content:center;gap:5px;"><span style="font-size:0.7rem;">🔒</span><span style="font-size:0.55rem;color:#c9a96e;">Secure Checkout</span></div>
+              <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                <div style="background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.25);border-radius:3px;padding:2px 8px;font-size:0.52rem;color:#c9a96e;font-weight:600;">VISA</div>
+                <div style="background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.25);border-radius:3px;padding:2px 8px;font-size:0.52rem;color:#c9a96e;font-weight:600;">MC</div>
+                <div style="background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.25);border-radius:3px;padding:2px 7px;font-size:0.52rem;color:#c9a96e;">↩ 30d</div>
+                <div style="background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.25);border-radius:3px;padding:2px 6px;font-size:0.52rem;color:#c9a96e;">PayPal</div>
+              </div>
+              <div style="font-size:0.52rem;color:#c9a96e;">✓ 30 day returns · SSL secured</div>
+            </div>
+            <div class="card-desc-flip" data-en="🔒 SSL badge, payment logos (Visa, Mastercard), return policy icons. Instant trust." data-lv="🔒 SSL zīme, maksājumu logo (Visa, Mastercard), atgriešanas politikas ikonas. Tūlītēja uzticamība.">🔒 SSL badge, payment logos (Visa, Mastercard), return policy icons. Instant trust.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: No cross-sell -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en="No Cross-Sell Section" data-lv="Nav Kross-pārdošanas Sadaļas">No Cross-Sell Section</div>
+            <div class="mock-layout" style="gap:4px;">
+              <div class="mock-bar bad" style="width:100%;height:5px;"></div>
+              <div class="mock-bar bad" style="width:78%;height:5px;"></div>
+              <div style="height:28px;"></div>
+              <div style="font-size:0.58rem;color:#2a2a2a;border-top:1px solid #1a1a1a;padding-top:4px;" data-en="[footer]" data-lv="[apakšdaļa]">— end of page —</div>
+            </div>
+            <div class="card-desc-flip" data-en="Customer buys one thing and leaves. AOV stays flat. You left money on the table." data-lv="Klients nopērk vienu lietu un aiziet. Vidējais pasūtījums paliek nemainīgs. Tu atstāji naudu uz galda.">Customer buys one thing and leaves. AOV stays flat. You left money on the table.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en='"Customers Also Bought" Section' data-lv='"Klienti arī iegādājās" Sadaļa'>"Customers Also Bought" Section</div>
+            <div class="mock-layout" style="gap:5px;">
+              <div style="font-size:0.62rem;color:#c9a96e;font-weight:600;">Customers also bought</div>
+              <div style="display:flex;gap:5px;">
+                <div style="flex:1;background:rgba(201,169,110,0.07);border:1px solid rgba(201,169,110,0.15);border-radius:5px;padding:4px;">
+                  <div style="height:26px;background:rgba(201,169,110,0.12);border-radius:3px;margin-bottom:3px;"></div>
+                  <div style="font-size:0.5rem;color:#c9a96e;">€24.99</div>
+                </div>
+                <div style="flex:1;background:rgba(201,169,110,0.07);border:1px solid rgba(201,169,110,0.15);border-radius:5px;padding:4px;">
+                  <div style="height:26px;background:rgba(201,169,110,0.12);border-radius:3px;margin-bottom:3px;"></div>
+                  <div style="font-size:0.5rem;color:#c9a96e;">€18.00</div>
+                </div>
+                <div style="flex:1;background:rgba(201,169,110,0.07);border:1px solid rgba(201,169,110,0.15);border-radius:5px;padding:4px;">
+                  <div style="height:26px;background:rgba(201,169,110,0.12);border-radius:3px;margin-bottom:3px;"></div>
+                  <div style="font-size:0.5rem;color:#c9a96e;">€32.50</div>
+                </div>
+              </div>
+            </div>
+            <div class="card-desc-flip" data-en='"Customers also bought" with product thumbnails and one-click add. Increases AOV by 15–30%.' data-lv='"Klienti arī iegādājās" ar produktu sīktēliem un viena klikšķa pievienošanu. Palielina AOV par 15–30%.'>"Customers also bought" with product thumbnails and one-click add. Increases AOV by 15–30%.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 6: Confusing nav -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en="Confusing Navigation" data-lv="Mulsinoša Navigācija">Confusing Navigation</div>
+            <div class="mock-layout" style="gap:4px;">
+              <div style="height:20px;background:rgba(180,30,30,0.08);border:1px solid rgba(180,30,30,0.15);border-radius:3px;display:flex;align-items:center;padding:0 5px;gap:3px;overflow:hidden;">
+                <span style="font-size:0.42rem;color:#555;white-space:nowrap;">Home</span>
+                <span style="font-size:0.42rem;color:#555;white-space:nowrap;">Sale</span>
+                <span style="font-size:0.42rem;color:#555;white-space:nowrap;">Women</span>
+                <span style="font-size:0.42rem;color:#555;white-space:nowrap;">Men</span>
+                <span style="font-size:0.42rem;color:#555;white-space:nowrap;">Kids</span>
+                <span style="font-size:0.42rem;color:#555;white-space:nowrap;">Bags</span>
+                <span style="font-size:0.42rem;color:#555;white-space:nowrap;">Shoes</span>
+                <span style="font-size:0.42rem;color:#555;white-space:nowrap;">Blog</span>
+                <span style="font-size:0.42rem;color:#555;white-space:nowrap;">FAQ</span>
+                <span style="font-size:0.42rem;color:#555;white-space:nowrap;">About</span>
+                <span style="font-size:0.42rem;color:#555;white-space:nowrap;">Contact</span>
+              </div>
+              <div style="height:42px;background:rgba(180,30,30,0.06);border:1px solid rgba(180,30,30,0.1);border-radius:4px;"></div>
+            </div>
+            <div class="card-desc-flip" data-en="15 top-level menu items, no hierarchy, no search. People can't find products." data-lv="15 augstākā līmeņa izvēlnes elementi, bez hierarhijas, bez meklēšanas. Cilvēki nevar atrast produktus.">15 top-level menu items, no hierarchy, no search. People can't find products.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en="Clean Category Menu + Search Bar" data-lv="Tīrs Kategoriju Izvēlne + Meklēšanas Josla">Clean Category Menu + Search Bar</div>
+            <div class="mock-layout" style="gap:5px;">
+              <div style="height:22px;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.15);border-radius:4px;display:flex;align-items:center;padding:0 8px;gap:10px;">
+                <span style="font-size:0.52rem;color:#c9a96e;font-weight:500;">Shop</span>
+                <span style="font-size:0.52rem;color:#c9a96e;font-weight:500;">Sale</span>
+                <span style="font-size:0.52rem;color:#c9a96e;font-weight:500;">About</span>
+                <span style="font-size:0.52rem;color:#c9a96e;font-weight:500;">Blog</span>
+                <span style="margin-left:auto;font-size:0.72rem;">🔍</span>
+              </div>
+              <div style="height:42px;background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.15);border-radius:4px;"></div>
+            </div>
+            <div class="card-desc-flip" data-en="Clear categories (max 6), prominent search bar, logical hierarchy. Find in 2 clicks." data-lv="Skaidras kategorijas (maks. 6), pamanāma meklēšanas josla, loģiska hierarhija. Atrast 2 klikšķos.">Clear categories (max 6), prominent search bar, logical hierarchy. Find in 2 clicks.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- WEBSITE CARDS -->
+  <div class="tab-panel" id="tab-web">
+    <div class="flip-grid">
+
+      <!-- Card 1: Wall of text -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en="Wall of Text Homepage" data-lv="Teksta Siena Sākumlapā">Wall of Text Homepage</div>
+            <div class="mock-layout">
+              <div class="mock-bar bad w-full"></div>
+              <div class="mock-bar bad w-full"></div>
+              <div class="mock-bar bad w-90"></div>
+              <div class="mock-bar bad w-full"></div>
+              <div class="mock-bar bad w-75"></div>
+              <div class="mock-bar bad w-full"></div>
+            </div>
+            <div class="card-desc-flip" data-en="Nobody reads a wall of text. They bounce in 3 seconds." data-lv="Neviens nelasa teksta sienu. Viņi aiziet 3 sekundēs.">Nobody reads a wall of text. They bounce in 3 seconds.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en="Clear Hero with Headline + CTA" data-lv="Skaidrs Hero ar Virsrakstu + CTA">Clear Hero with Headline + CTA</div>
+            <div class="mock-layout">
+              <div class="mock-bar good w-75" style="height:10px;"></div>
+              <div class="mock-bar good w-50" style="height:7px;"></div>
+              <div class="mock-box good" style="height:24px; width:40%;"></div>
+            </div>
+            <div class="card-desc-flip" data-en="Strong headline, 1–2 lines of subtext, one clear CTA. Visitors know exactly what to do." data-lv="Spēcīgs virsraksts, 1–2 rindas teksta, viena skaidra CTA. Apmeklētāji precīzi zina, ko darīt.">Strong headline, 1–2 lines of subtext, one clear CTA. Visitors know exactly what to do.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: No contact -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en="No Contact Info Visible" data-lv="Nav Redzamas Kontaktinformācijas">No Contact Info Visible</div>
+            <div class="mock-layout">
+              <div class="mock-bar bad w-full"></div>
+              <div class="mock-bar bad w-90"></div>
+              <div class="mock-bar bad w-75"></div>
+              <div style="font-size:0.68rem; color:var(--muted); margin-top:4px;" data-en="📍 contact buried in footer" data-lv="📍 kontakti aprakti kājenē">📍 contact buried in footer</div>
+            </div>
+            <div class="card-desc-flip" data-en="If they can't find how to reach you in 5 seconds, they find someone else." data-lv="Ja viņi nevar atrast, kā sazināties 5 sekundēs, viņi atrod kādu citu.">If they can't find how to reach you in 5 seconds, they find someone else.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en="Sticky Contact Bar with Phone / Email / WhatsApp" data-lv="Fiksēta Kontaktu Josla ar Tālruni / E-pastu / WhatsApp">Sticky Contact Bar with Phone / Email / WhatsApp</div>
+            <div class="mock-layout">
+              <div class="mock-box good" style="height:24px; display:flex; align-items:center; gap:6px; padding:0 8px;">
+                <div class="mock-bar good w-40" style="height:5px; margin:0;"></div>
+                <div class="mock-bar good w-40" style="height:5px; margin:0;"></div>
+              </div>
+              <div class="mock-bar good w-75" style="margin-top:6px;"></div>
+            </div>
+            <div class="card-desc-flip" data-en="Sticky top bar with phone, email, WhatsApp. Always visible, always one tap away." data-lv="Fiksēta augšējā josla ar tālruni, e-pastu, WhatsApp. Vienmēr redzama, vienmēr viena pieskāriena attālumā.">Sticky top bar with phone, email, WhatsApp. Always visible, always one tap away.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Not mobile friendly -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en="Not Mobile Friendly" data-lv="Nav Mobilajām Ierīcēm Draudzīgs">Not Mobile Friendly</div>
+            <div class="mock-layout">
+              <div class="mock-row" style="overflow:hidden;">
+                <div class="mock-bar bad w-full" style="min-width:200%; height:40px; border-radius:3px; opacity:0.5;"></div>
+              </div>
+              <div style="font-size:0.68rem; color:var(--muted); margin-top:4px;" data-en="← scroll horizontally on mobile 😬" data-lv="← skrolo horizontāli uz mobilā 😬">← scroll horizontally on mobile 😬</div>
+            </div>
+            <div class="card-desc-flip" data-en="60%+ traffic is mobile. Broken mobile experience = half your audience gone." data-lv="60%+ datplūsma ir no mobilajiem. Salūzusi mobilā pieredze = puse auditorijas zudusi.">60%+ traffic is mobile. Broken mobile experience = half your audience gone.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en="Clean, Responsive Mobile Layout" data-lv="Tīrs, Responsīvs Mobilais Izkārtojums">Clean, Responsive Mobile Layout</div>
+            <div class="mock-layout">
+              <div class="mock-bar good w-full" style="height:8px;"></div>
+              <div class="mock-bar good w-90"></div>
+              <div class="mock-bar good w-75"></div>
+              <div class="mock-box good" style="height:24px; width:50%;"></div>
+            </div>
+            <div class="card-desc-flip" data-en="Mobile-first design. Every tap target the right size. Loads fast. Looks intentional." data-lv="Mobile-first dizains. Katrs pieskaršanās mērķis pareizā izmērā. Ielādējas ātri. Izskatās apzināts.">Mobile-first design. Every tap target the right size. Loads fast. Looks intentional.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4: No testimonials -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en="No Testimonials" data-lv="Nav Atsauksmju">No Testimonials</div>
+            <div class="mock-layout">
+              <div class="mock-bar bad w-full"></div>
+              <div class="mock-bar bad w-90"></div>
+              <div class="mock-bar bad w-75"></div>
+            </div>
+            <div class="card-desc-flip" data-en="Your word about yourself is worth nothing. Their word about you is everything." data-lv="Tavi vārdi par sevi neko nenozīmē. Viņu vārdi par tevi nozīmē visu.">Your word about yourself is worth nothing. Their word about you is everything.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en="Testimonial Cards with Names + Photos" data-lv="Atsauksmju Kartes ar Vārdiem + Fotogrāfijām">Testimonial Cards with Names + Photos</div>
+            <div class="mock-layout">
+              <div class="mock-row" style="align-items:flex-start; gap:8px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.2);flex-shrink:0;"></div>
+                <div style="flex:1;">
+                  <div class="mock-bar good w-50" style="margin-bottom:4px;"></div>
+                  <div class="mock-bar good w-full"></div>
+                  <div class="mock-bar good w-90"></div>
+                </div>
+              </div>
+            </div>
+            <div class="card-desc-flip" data-en="Real names, real photos, specific outcomes. Makes everything else on the page more credible." data-lv="Īsti vārdi, īstas fotogrāfijas, specifiski rezultāti. Padara visu pārējo lapā ticamāku.">Real names, real photos, specific outcomes. Makes everything else on the page more credible.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 5: Slow, no images -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en="Slow Loading, No Visuals" data-lv="Lēna Ielāde, Nav Vizuāļu">Slow Loading, No Visuals</div>
+            <div class="mock-layout">
+              <div style="font-size:0.7rem; color:#e88a8a; margin-bottom:6px;" data-en="⏳ Loading... (4.2s)" data-lv="⏳ Ielādē... (4.2s)">⏳ Loading... (4.2s)</div>
+              <div class="mock-bar bad w-full"></div>
+              <div class="mock-bar bad w-75"></div>
+            </div>
+            <div class="card-desc-flip" data-en="1 second delay = 7% conversion drop. 4 seconds = you've lost them." data-lv="1 sekundes kavēšanās = 7% konversijas kritums. 4 sekundes = tu viņus esi zaudējis.">1 second delay = 7% conversion drop. 4 seconds = you've lost them.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en="Fast, Visual, with Real Photography" data-lv="Ātrs, Vizuāls, ar Īstu Fotogrāfiju">Fast, Visual, with Real Photography</div>
+            <div class="mock-layout">
+              <div style="font-size:0.7rem; color:var(--gold); margin-bottom:6px;" data-en="⚡ Loaded in 0.8s" data-lv="⚡ Ielādēts 0.8s">⚡ Loaded in 0.8s</div>
+              <div class="mock-img good" style="height:60px;"></div>
+              <div class="mock-bar good w-75"></div>
+            </div>
+            <div class="card-desc-flip" data-en="Optimized images, clean code, fast host. Under 1s load time. Looks and performs great." data-lv="Optimizēti attēli, tīrs kods, ātrs hosti. Ielādes laiks zem 1s. Izskatās un darbojas lieliski.">Optimized images, clean code, fast host. Under 1s load time. Looks and performs great.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 6: No value prop -->
+      <div class="flip-card" onclick="this.classList.toggle('flipped')">
+        <div class="flip-card-inner">
+          <div class="flip-front">
+            <div class="card-status">❌</div>
+            <div class="card-title-flip" data-en='No Clear "What You Do"' data-lv='Nav Skaidra "Ko Tu Dari"'>No Clear "What You Do"</div>
+            <div class="mock-layout">
+              <div class="mock-bar bad w-75" style="height:12px;"></div>
+              <div style="font-size:0.68rem; color:var(--muted); margin:4px 0;" data-en='"Welcome to our website!"' data-lv='"Laipni lūgti mūsu mājaslapā!"'>"Welcome to our website!"</div>
+              <div class="mock-bar bad w-full"></div>
+              <div class="mock-bar bad w-90"></div>
+            </div>
+            <div class="card-desc-flip" data-en="Visitors shouldn't have to guess what you do. If they do, they leave." data-lv="Apmeklētājiem nevajadzētu uzminēt, ko tu dari. Ja viņiem tas ir jādara, viņi aiziet.">Visitors shouldn't have to guess what you do. If they do, they leave.</div>
+            <div class="flip-hint" data-en="tap to fix →" data-lv="nospied, lai salabotu →">tap to fix →</div>
+          </div>
+          <div class="flip-back">
+            <div class="card-status">✅</div>
+            <div class="card-title-flip" data-en="Above-Fold Value Proposition" data-lv="Vērtības Piedāvājums Virs Redzamās Zonas">Above-Fold Value Proposition</div>
+            <div class="mock-layout">
+              <div class="mock-bar good w-90" style="height:10px;"></div>
+              <div class="mock-bar good w-75" style="height:7px;"></div>
+              <div class="mock-bar good w-50" style="height:7px;"></div>
+              <div class="mock-box good" style="height:24px; width:40%;"></div>
+            </div>
+            <div class="card-desc-flip" data-en="Clear headline that says exactly what you do, who for, and why they should care. In 5 words." data-lv="Skaidrs virsraksts, kas precīzi saka, ko tu dari, kam, un kāpēc viņiem vajadzētu rūpēties. 5 vārdos.">Clear headline that says exactly what you do, who for, and why they should care. In 5 words.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section reveal">
+  <h2 data-en='Recognize your store? <em>Let&apos;s fix it.</em>' data-lv='Atpazīsti savu veikalu? <em>Labosim to.</em>'>Recognize your store? <em>Let's fix it.</em></h2>
+  <a href="mailto:prenclavsalekss@gmail.com?subject=Store Audit Request" class="btn-primary" data-en="Get Your Store Audited →" data-lv="Pasūtīt Veikala Auditu →">Get Your Store Audited →</a>
+</div>
+
+<footer>
+  <p>Alekss Prenclavs · <a href="mailto:prenclavsalekss@gmail.com">prenclavsalekss@gmail.com</a> · <a href="https://bobfromzero.github.io/bronai" target="_blank">bobfromzero.github.io/bronai</a></p>
+</footer>
+
+<script>
+  let lang = 'en';
+  function toggleLang() {
+    lang = lang === 'en' ? 'lv' : 'en';
+    document.getElementById('langBtn').textContent = lang === 'en' ? 'LV' : 'EN';
+    document.querySelectorAll('[data-en]').forEach(el => {
+      const val = el.getAttribute('data-' + lang);
+      if (!val) return;
+      el.innerHTML = val;
+    });
+  }
+
+  function switchTab(name, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    // Reset flipped cards when switching
+    document.querySelectorAll('.flip-card').forEach(c => c.classList.remove('flipped'));
+  }
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
